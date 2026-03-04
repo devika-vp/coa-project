@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Instruction Results</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/simulator.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/theme.css') }}">
+    <style>
+        .results-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .results-header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+            border-radius: 12px;
+            color: #022c22;
+        }
+
+        .results-header h1 {
+            margin: 0;
+            font-size: 2rem;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .result-card {
+            background: #1e293b;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .result-card h2 {
+            margin-top: 0;
+            margin-bottom: 15px;
+            color: #60a5fa;
+            font-size: 1.3rem;
+        }
+
+        .result-card p {
+            margin: 8px 0;
+            font-size: 0.95rem;
+            color: #d1d5db;
+        }
+
+        .result-card table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        .result-card table th {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 8px;
+            text-align: left;
+            font-weight: 600;
+            color: #60a5fa;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .result-card table td {
+            padding: 8px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .diagnosis-panel {
+            grid-column: 1 / -1;
+        }
+
+        .diagnosis-text {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 12px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 0.85rem;
+            color: #a5b4fc;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .pipeline-flow {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            margin: 20px 0;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+        }
+
+        .pipeline-stage {
+            text-align: center;
+            padding: 10px 15px;
+            background: rgba(34, 197, 94, 0.2);
+            border-radius: 8px;
+            border-left: 3px solid #22c55e;
+        }
+
+        .pipeline-stage strong {
+            display: block;
+            color: #60a5fa;
+            margin-bottom: 5px;
+        }
+
+        .pipeline-stage span {
+            font-size: 0.85rem;
+            color: #9ca3af;
+        }
+
+        .button-group {
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        .btn-back {
+            padding: 12px 30px;
+            margin: 0 10px;
+            border-radius: 8px;
+            border: none;
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+            color: #022c22;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
+        }
+
+        .btn-back:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(34, 197, 94, 0.5);
+        }
+
+        .btn-back:active {
+            transform: translateY(0);
+        }
+
+        @media (max-width: 768px) {
+            .results-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .pipeline-flow {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+{% include '_nav.html' %}
+
+<div class="results-container">
+    <!-- Header -->
+    <div class="results-header">
+        <h1>✅ Instruction Execution Results</h1>
+        <p id="instruction-name">Instruction: <span id="instr-type"></span></p>
+    </div>
+
+    <!-- Pipeline Flow -->
+    <div class="pipeline-flow">
+        <div class="pipeline-stage">
+            <strong>IF</strong>
+            <span id="pipe-if">Instruction Fetch</span>
+        </div>
+        <div style="color: #22c55e;">→</div>
+        <div class="pipeline-stage">
+            <strong>ID</strong>
+            <span id="pipe-id">Instruction Decode</span>
+        </div>
+        <div style="color: #22c55e;">→</div>
+        <div class="pipeline-stage">
+            <strong>EX</strong>
+            <span id="pipe-ex">Execute</span>
+        </div>
+        <div style="color: #22c55e;">→</div>
+        <div class="pipeline-stage">
+            <strong>MEM</strong>
+            <span id="pipe-mem">Memory Access</span>
+        </div>
+        <div style="color: #22c55e;">→</div>
+        <div class="pipeline-stage">
+            <strong>WB</strong>
+            <span id="pipe-wb">Write Back</span>
+        </div>
+    </div>
+
+    <!-- Results Grid -->
+    <div class="results-grid">
+        <!-- Execution Results -->
+        <div class="result-card">
+            <h2>⚙️ Execution Results</h2>
+            <p><strong>Decimal Result:</strong> <span id="result-decimal">0</span></p>
+            <p><strong>Binary Result:</strong> <span id="result-binary" class="binary-text">0</span></p>
+            <p><strong>Machine Code:</strong></p>
+            <p style="font-family: monospace; color: #60a5fa;" id="result-machine-code">0</p>
+            <p id="result-branch" style="display: none;"><strong>Branch Status:</strong> <span id="branch-status"></span></p>
+        </div>
+
+        <!-- Register Values -->
+        <div class="result-card">
+            <h2>📝 Register State</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Register</th>
+                        <th>Input Value</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Rs</td>
+                        <td id="result-rs">0</td>
+                    </tr>
+                    <tr>
+                        <td>Rt</td>
+                        <td id="result-rt">0</td>
+                    </tr>
+                    <tr>
+                        <td>Rd (Result)</td>
+                        <td id="result-rd">0</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Performance Metrics -->
+        <div class="result-card">
+            <h2>📊 Performance Metrics</h2>
+            <p><strong>Total Instructions:</strong> <span id="result-instr">0</span></p>
+            <p><strong>Total Cycles:</strong> <span id="result-cycles">0</span></p>
+            <p><strong>Stall Cycles:</strong> <span id="result-stalls">0</span></p>
+            <p><strong>Branch Mispredictions:</strong> <span id="result-mispred">0</span></p>
+            <p><strong>CPI:</strong> <span id="result-cpi">0</span></p>
+            <p><strong>IPC:</strong> <span id="result-ipc">0</span></p>
+            <p><strong>Throughput:</strong> <span id="result-throughput">0</span></p>
+        </div>
+
+        <!-- Expected vs Actual -->
+        <div class="result-card">
+            <h2>✔️ Correctness Check</h2>
+            <p><strong>Expected Result:</strong> <span id="result-expected">0</span></p>
+            <p><strong>Status:</strong> <span id="result-status-badge" style="padding: 4px 8px; border-radius: 4px; font-weight: 600;">N/A</span></p>
+        </div>
+
+        <!-- Diagnosis -->
+        <div class="result-card diagnosis-panel">
+            <h2>🔍 Error Diagnosis</h2>
+            <div class="diagnosis-text" id="result-diagnosis">Loading diagnosis...</div>
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="button-group">
+        <button class="btn-back" onclick="goBackToSimulator()">← Back to Simulator</button>
+        <button class="btn-back" onclick="window.print()" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8);">🖨️ Print Results</button>
+    </div>
+</div>
+
+<script>
+    // Retrieve results from sessionStorage
+    function loadResults() {
+        const data = sessionStorage.getItem('simulationResults');
+        if (!data) {
+            document.body.innerHTML = '<h1 style="text-align:center; margin-top:100px;">No results found. Return to simulator.</h1>';
+            return;
+        }
+
+        const results = JSON.parse(data);
+
+        // Populate pipeline stages
+        document.getElementById('pipe-if').textContent = results.IF;
+        document.getElementById('pipe-id').textContent = results.ID;
+        document.getElementById('pipe-ex').textContent = results.EX;
+        document.getElementById('pipe-mem').textContent = results.MEM;
+        document.getElementById('pipe-wb').textContent = results.WB;
+
+        // Populate instruction name
+        document.getElementById('instr-type').textContent = results.operation;
+
+        // Populate execution results
+        document.getElementById('result-decimal').textContent = results.result_decimal;
+        document.getElementById('result-binary').textContent = results.result_binary;
+        document.getElementById('result-machine-code').textContent = results.machine_code;
+
+        // Show branch information if applicable
+        if (results.operation === 'BEQ' && results.branch_taken) {
+            document.getElementById('result-branch').style.display = 'block';
+            document.getElementById('branch-status').textContent = '✓ Branch Taken';
+            document.getElementById('branch-status').style.color = '#22c55e';
+        }
+
+        // Populate register values
+        document.getElementById('result-rs').textContent = results.rs;
+        document.getElementById('result-rt').textContent = results.rt;
+        document.getElementById('result-rd').textContent = results.result_decimal;
+
+        // Populate metrics
+        document.getElementById('result-instr').textContent = results.total_instructions;
+        document.getElementById('result-cycles').textContent = results.total_cycles;
+        document.getElementById('result-stalls').textContent = results.stall_cycles;
+        document.getElementById('result-mispred').textContent = results.branch_mispredictions;
+        document.getElementById('result-cpi').textContent = results.cpi.toFixed(2);
+        document.getElementById('result-ipc').textContent = results.ipc.toFixed(2);
+        document.getElementById('result-throughput').textContent = results.throughput.toFixed(2);
+
+        // Populate correctness check
+        document.getElementById('result-expected').textContent = results.expected_result;
+        const statusBadge = document.getElementById('result-status-badge');
+        if (results.diagnosis_status === 'Correct') {
+            statusBadge.textContent = '✅ Correct';
+            statusBadge.style.background = '#10b981';
+            statusBadge.style.color = '#022c22';
+        } else {
+            statusBadge.textContent = '❌ Incorrect';
+            statusBadge.style.background = '#ef4444';
+            statusBadge.style.color = '#fff';
+        }
+
+        // Populate diagnosis
+        document.getElementById('result-diagnosis').textContent = results.diagnosis;
+
+        // Clear sessionStorage after displaying (optional)
+        // sessionStorage.removeItem('simulationResults');
+    }
+
+    function goBackToSimulator() {
+        window.location.href = '/simulator';
+    }
+
+    // Load results on page load
+    window.addEventListener('DOMContentLoaded', loadResults);
+</script>
+
+</body>
+</html>

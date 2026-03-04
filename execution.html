@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Instruction Execution</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/execution.css') }}">
+</head>
+<body>
+
+<div class="container">
+
+    <!-- LEFT SECTION -->
+    <div class="left-section hero-left">
+        <h1>
+            Watch an instruction <br>
+            <span class="highlight">fly through</span> the <br>
+            Single-Cycle RISC pipeline.
+        </h1>
+        <p class="description">
+            In a Single-Cycle RISC Processor, every instruction completes its entire journey
+            — from memory to registers and back — in just <span class="blue">one</span> clock tick.
+            Explore how the 5 classic stages cooperate to make that happen.
+        </p>
+         
+
+        <div class="flow">
+            Memory → <span>Pipeline</span> → Registers
+        </div>
+        <!-- Stage Cards -->
+        <div class="stage-grid">
+            <div class="card">
+                <div class="circle">IF</div>
+                <h3>Instruction Fetch</h3>
+                <p>Fetch instruction bits from memory using the Program Counter (PC).</p>
+            </div>
+            <div class="card">
+                <div class="circle">ID</div>
+                <h3>Instruction Decode</h3>
+                <p>Decode opcode, read registers, and prepare control signals.</p>
+            </div>
+            <div class="card">
+                <div class="circle">EX</div>
+                <h3>Execute</h3>
+                <p>ALU executes arithmetic, computes addresses, or branch decisions.</p>
+            </div>
+            <div class="card">
+                <div class="circle">MEM</div>
+                <h3>Memory</h3>
+                <p>Optional access to data memory for loads and stores.</p>
+            </div>
+            <div class="card">
+                <div class="circle">WB</div>
+                <h3>Write Back</h3>
+                <p>Write the final result back into the register file.</p>
+            </div>
+        </div>
+
+        <a href="/simulator" class="start-btn">Start Interactive Simulation</a>
+    </div>
+
+    <!-- RIGHT SECTION -->
+    <div class="right-section hero-right hero-fade-in">
+        <div class="pipeline-card pipeline-focal">
+            <h2>Instruction Execution Cycle</h2>
+
+            <p class="pipeline-caption">
+                Click a stage or 
+                <button type="button" class="inline-play" id="pipeline-play">▶ Auto-play</button>
+            </p>
+
+            <div class="pipeline-diagram">
+                <div class="pipe-node pipe-if" data-step="0" tabindex="0" role="button">
+                    IF<span>Instruction Fetch</span>
+                </div>
+                <div class="pipe-arrow"></div>
+                <div class="pipe-node pipe-id" data-step="1" tabindex="0" role="button">
+                    ID<span>Instruction Decode</span>
+                </div>
+                <div class="pipe-arrow"></div>
+                <div class="pipe-node pipe-ex" data-step="2" tabindex="0" role="button">
+                    EX<span>Execute</span>
+                </div>
+                <div class="pipe-arrow"></div>
+                <div class="pipe-node pipe-mem" data-step="3" tabindex="0" role="button">
+                    MEM<span>Memory</span>
+                </div>
+                <div class="pipe-arrow"></div>
+                <div class="pipe-node pipe-wb" data-step="4" tabindex="0" role="button">
+                    WB<span>Write Back</span>
+                </div>
+            </div>
+
+            <div id="pipeline-desc" class="pipeline-desc">
+                <strong class="pipeline-desc-title">Instruction Fetch</strong>
+                <p class="pipeline-desc-text">
+                    Fetch instruction bits from memory using the Program Counter (PC).
+                </p>
+            </div>
+
+            <p class="pipeline-note">
+                In a <strong>single-cycle</strong> design, all five stages occur between two rising edges of the clock — great for teaching and perfect for visual simulation.
+            </p>
+        </div>
+    </div>
+
+</div>
+
+<script>
+const nodes = document.querySelectorAll('.pipe-node');
+const descTitle = document.querySelector('.pipeline-desc-title');
+const descText = document.querySelector('.pipeline-desc-text');
+
+const stageDescriptions = [
+    {title:"Instruction Fetch", text:"Fetch instruction bits from memory using the Program Counter (PC)."},
+    {title:"Instruction Decode", text:"Decode opcode, read registers, and prepare control signals."},
+    {title:"Execute", text:"ALU executes arithmetic, computes addresses, or branch decisions."},
+    {title:"Memory", text:"Optional access to data memory for loads and stores."},
+    {title:"Write Back", text:"Write the final result back into the register file."},
+];
+
+// Blink animation for nodes
+function blinkNode(node){
+    node.classList.add('active-blink');
+    setTimeout(()=>node.classList.remove('active-blink'), 600);
+}
+
+// Click each stage individually
+nodes.forEach(node=>{
+    node.addEventListener('click', ()=>{
+        const step = node.dataset.step;
+        blinkNode(node);
+        descTitle.textContent = stageDescriptions[step].title;
+        descText.textContent = stageDescriptions[step].text;
+    });
+});
+
+// Auto-play all stages
+document.getElementById('pipeline-play').addEventListener('click', async ()=>{
+    for(let i=0; i<nodes.length; i++){
+        blinkNode(nodes[i]);
+        descTitle.textContent = stageDescriptions[i].title;
+        descText.textContent = stageDescriptions[i].text;
+        await new Promise(r=>setTimeout(r,1000));
+    }
+});
+</script>
+
+</body>
+</html>

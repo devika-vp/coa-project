@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Single-Cycle RISC Simulator | Splash</title>
+
+    <!-- Link CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/splash.css') }}">
+
+    <!-- Auto Redirect after 3 seconds -->
+    <script>
+        setTimeout(function() {
+            window.location.href = "{{ url_for('landing') }}";
+        }, 3000);
+    </script>
+</head>
+
+<body>
+
+    <!-- Background Glow Effects -->
+    <div class="glow-orb glow-left"></div>
+    <div class="glow-orb glow-right"></div>
+
+    <!-- Splash Content -->
+    <div class="splash-container">
+        <h1 class="splash-title">RISC Simulator</h1>
+
+        <div class="loader"></div>
+
+        <p class="loading-text">Initializing System...</p>
+    </div>
+<script src="{{ url_for('static', filename='js/splash.js') }}"></script>
+</body>
+</html>
